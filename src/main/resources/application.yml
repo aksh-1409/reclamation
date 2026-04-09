@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: license-reclamation-engine
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/license_engine?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  batch:
+    job:
+      enabled: false
+  
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+server:
+  port: 8082
+  servlet:
+    context-path: /
+
+logging:
+  level:
+    com.company.licenseengine: DEBUG
+    org.springframework.batch: INFO
+    org.springframework.security: INFO
+
+# Application specific properties
+app:
+  mock-apis:
+    hris-url: http://localhost:8082/mock/hris
+    vendor-url: http://localhost:8082/mock/vendor
+  email:
+    verification-base-url: http://localhost:8082/verify
+    response-deadline-days: 3
+  scheduling:
+    deadline-check-cron: "0 0 * * * *" # Every hour
+    extension-check-cron: "0 30 * * * *" # Every hour at 30 minutes
