@@ -177,6 +177,30 @@ public class DashboardController {
     }
     
     /**
+     * Revoke overdue license
+     */
+    @PostMapping("/revoke-overdue/{id}")
+    public String revokeOverdue(@PathVariable Long id,
+                               @RequestParam String justification,
+                               Authentication auth,
+                               RedirectAttributes redirectAttributes) {
+        
+        if (justification == null || justification.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Justification is required for revoking overdue licenses.");
+            return "redirect:/";
+        }
+        
+        boolean success = auditAlertService.revokeOverdueLicense(id, auth.getName(), justification);
+        if (success) {
+            redirectAttributes.addFlashAttribute("successMessage", "Overdue license revoked successfully.");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to revoke overdue license.");
+        }
+        
+        return "redirect:/";
+    }
+    
+    /**
      * View alert details (AJAX endpoint)
      */
     @GetMapping("/alert/{id}")

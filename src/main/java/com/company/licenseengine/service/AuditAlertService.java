@@ -250,6 +250,34 @@ public class AuditAlertService {
     }
     
     /**
+     * Revoke overdue license
+     */
+    public boolean revokeOverdueLicense(Long alertId, String adminUsername, String justification) {
+        Optional<AuditAlert> alertOpt = auditAlertRepository.findById(alertId);
+        if (alertOpt.isEmpty()) return false;
+        
+        AuditAlert alert = alertOpt.get();
+        if (alert.getStatus() != AuditAlert.AlertStatus.RESPONSE_OVERDUE) return false;
+        
+        // Call mock API to revoke license
+        boolean success = mockApiService.revokeLicense(alert.getEmail(), alert.getVendorName());
+        if (!success) return false;
+        
+        // Update alert status
+        AuditAlert.AlertStatus previousStatus = alert.getStatus();
+        alert.setStatus(AuditAlert.AlertStatus.RESOLVED);
+        auditAlertRepository.save(alert);
+        
+        // Log action
+        ActionHistoryLog log = new ActionHistoryLog(alert, adminUsername, 
+            ActionHistoryLog.ActionType.REVOKE_OVERDUE, justification, previousStatus, 
+            AuditAlert.AlertStatus.RESOLVED);
+        actionHistoryLogRepository.save(log);
+        
+        return true;
+    }
+    
+    /**
      * Get alert by ID
      */
     public Optional<AuditAlert> getAlertById(Long id) {
