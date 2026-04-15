@@ -1,3 +1,4 @@
+com\company\licenseengine\service\EmailService.class
 com\company\licenseengine\service\DataSyncService$SyncResult.class
 com\company\licenseengine\service\MockApiService.class
 com\company\licenseengine\config\SecurityConfig.class

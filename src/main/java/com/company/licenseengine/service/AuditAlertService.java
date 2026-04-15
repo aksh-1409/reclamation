@@ -32,6 +32,9 @@ public class AuditAlertService {
     @Autowired
     private MockApiService mockApiService;
     
+    @Autowired
+    private EmailService emailService;
+    
     @Value("${app.email.verification-base-url}")
     private String verificationBaseUrl;
     
@@ -104,7 +107,13 @@ public class AuditAlertService {
         
         // Send email
         String verificationUrl = verificationBaseUrl + "/" + token;
-        boolean emailSent = mockApiService.sendVerificationEmail(alert.getEmail(), verificationUrl);
+        boolean emailSent = emailService.sendVerificationEmail(
+            alert.getEmail(), 
+            alert.getEmployeeName(), 
+            alert.getVendorName(), 
+            verificationUrl, 
+            alert.getResponseDeadline().toString()
+        );
         
         if (emailSent) {
             // Log action
@@ -223,7 +232,13 @@ public class AuditAlertService {
         
         // Send reminder email
         String verificationUrl = verificationBaseUrl + "/" + alert.getVerificationToken();
-        mockApiService.sendReminderEmail(alert.getEmail(), verificationUrl);
+        emailService.sendReminderEmail(
+            alert.getEmail(), 
+            alert.getEmployeeName(), 
+            alert.getVendorName(), 
+            verificationUrl, 
+            alert.getResponseDeadline().toString()
+        );
         
         // Log action
         ActionHistoryLog log = new ActionHistoryLog(alert, adminUsername, 
