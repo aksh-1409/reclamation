@@ -621,8 +621,9 @@
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
-                        <form method="post" th:action="@{/extend-again/{id}(id=${alert.id})}">
+                        <form method="post" th:action="@{/extend-again/{id}(id=${alert.id})}" th:id="'extendForm' + ${alert.id}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <input type="hidden" name="sendInquiryEmail" th:id="'sendInquiryHidden' + ${alert.id}" value="false" />
                             <div class="modal-body">
                                 <div class="alert alert-warning">
                                     <i class="bi bi-clock-history"></i>
@@ -636,9 +637,26 @@
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
                                 
+                                <!-- Option Selection -->
                                 <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               th:id="'sendEmailCheck' + ${alert.id}" 
+                                               onchange="toggleExtensionOptions(this)">
+                                        <label class="form-check-label" th:for="'sendEmailCheck' + ${alert.id}">
+                                            <i class="bi bi-envelope"></i> Send verification email to user first
+                                        </label>
+                                        <small class="form-text text-muted">
+                                            Check this to ask the user if they still need the license before extending
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Duration Selection (enabled by default) -->
+                                <div class="mb-3" th:id="'durationSection' + ${alert.id}">
                                     <label class="form-label">New Extension Duration (for testing, treated as minutes):</label>
-                                    <select name="extensionDays" class="form-select" required>
+                                    <select name="extensionDays" class="form-select" 
+                                            th:id="'durationSelect' + ${alert.id}" required>
                                         <option value="2">2 minutes</option>
                                         <option value="4" selected>4 minutes</option>
                                         <option value="6">6 minutes</option>
@@ -654,8 +672,8 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-arrow-clockwise"></i> Extend Again
+                                <button type="submit" class="btn btn-success" th:id="'submitBtn' + ${alert.id}">
+                                    <i class="bi bi-arrow-clockwise"></i> Extend License
                                 </button>
                             </div>
                         </form>
@@ -726,6 +744,32 @@
                 bsAlert.close();
             });
         }, 5000);
+        
+        // Toggle extension options based on checkbox
+        function toggleExtensionOptions(checkbox) {
+            // Extract alert ID from checkbox ID (e.g., 'sendEmailCheck1' -> '1')
+            var alertId = checkbox.id.replace('sendEmailCheck', '');
+            
+            var durationSelect = document.getElementById('durationSelect' + alertId);
+            var submitBtn = document.getElementById('submitBtn' + alertId);
+            var hiddenInput = document.getElementById('sendInquiryHidden' + alertId);
+            
+            if (checkbox.checked) {
+                // Send inquiry email mode
+                durationSelect.disabled = true;
+                durationSelect.required = false;
+                submitBtn.innerHTML = '<i class="bi bi-envelope"></i> Send Inquiry Email';
+                submitBtn.className = 'btn btn-warning';
+                hiddenInput.value = 'true';
+            } else {
+                // Direct extension mode
+                durationSelect.disabled = false;
+                durationSelect.required = true;
+                submitBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Extend License';
+                submitBtn.className = 'btn btn-success';
+                hiddenInput.value = 'false';
+            }
+        }
     </script>
 </body>
 </html>

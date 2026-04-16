@@ -205,8 +205,9 @@ public class DashboardController {
      */
     @PostMapping("/extend-again/{id}")
     public String extendAgain(@PathVariable Long id,
-                             @RequestParam int extensionDays,
+                             @RequestParam(required = false) Integer extensionDays,
                              @RequestParam String justification,
+                             @RequestParam(defaultValue = "false") boolean sendInquiryEmail,
                              Authentication auth,
                              RedirectAttributes redirectAttributes) {
         
@@ -215,16 +216,27 @@ public class DashboardController {
             return "redirect:/";
         }
         
-        if (extensionDays <= 0 || extensionDays > 60) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Extension days must be between 1 and 60.");
-            return "redirect:/";
-        }
-        
-        boolean success = auditAlertService.extendExpiredLicense(id, auth.getName(), extensionDays, justification);
-        if (success) {
-            redirectAttributes.addFlashAttribute("successMessage", "License extended again successfully.");
+        if (sendInquiryEmail) {
+            // Send inquiry email to user
+            boolean success = auditAlertService.sendInquiryEmailForExpiredExtension(id, auth.getName(), justification);
+            if (success) {
+                redirectAttributes.addFlashAttribute("successMessage", "Inquiry email sent to user successfully.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Failed to send inquiry email.");
+            }
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to extend license again.");
+            // Direct extension
+            if (extensionDays == null || extensionDays <= 0 || extensionDays > 60) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Extension days must be between 1 and 60.");
+                return "redirect:/";
+            }
+            
+            boolean success = auditAlertService.extendExpiredLicense(id, auth.getName(), extensionDays, justification);
+            if (success) {
+                redirectAttributes.addFlashAttribute("successMessage", "License extended again successfully.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "Failed to extend license again.");
+            }
         }
         
         return "redirect:/";

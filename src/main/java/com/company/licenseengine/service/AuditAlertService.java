@@ -384,6 +384,61 @@ public class AuditAlertService {
     }
     
     /**
+     * Send inquiry email for expired extension
+     */
+    public boolean sendInquiryEmailForExpiredExtension(Long alertId, String adminUsername, String justification) {
+        Optional<AuditAlert> alertOpt = auditAlertRepository.findById(alertId);
+        if (alertOpt.isEmpty()) return false;
+        
+        AuditAlert alert = alertOpt.get();
+        if (alert.getStatus() != AuditAlert.AlertStatus.EXTENSION_EXPIRED) return false;
+        
+        // Generate new verification token (reuse existing or create new)
+        if (alert.getVerificationToken() == null || alert.getVerificationToken().isEmpty()) {
+            alert.setVerificationToken(UUID.randomUUID().toString());
+        }
+        
+        // Set new response deadline (use minutes for testing if configured, otherwise days)
+        LocalDateTime deadline;
+        if (responseDeadlineMinutes > 0) {
+            deadline = LocalDateTime.now().plusMinutes(responseDeadlineMinutes);
+        } else {
+            deadline = LocalDateTime.now().plusDays(responseDeadlineDays);
+        }
+        alert.setResponseDeadline(deadline);
+        
+        // Reset reminder sent flag for new inquiry
+        alert.setReminderSent(false);
+        
+        // Update status to awaiting response
+        AuditAlert.AlertStatus previousStatus = alert.getStatus();
+        alert.setStatus(AuditAlert.AlertStatus.AWAITING_RESPONSE);
+        auditAlertRepository.save(alert);
+        
+        // Send inquiry email
+        String verificationUrl = verificationBaseUrl + "/" + alert.getVerificationToken();
+        boolean emailSent = emailService.sendVerificationEmail(
+            alert.getEmail(), 
+            alert.getEmployeeName(), 
+            alert.getVendorName(), 
+            verificationUrl, 
+            alert.getResponseDeadline().toString()
+        );
+        
+        if (emailSent) {
+            // Log action
+            ActionHistoryLog log = new ActionHistoryLog(alert, adminUsername, 
+                ActionHistoryLog.ActionType.SEND_EMAIL, justification, 
+                previousStatus, AuditAlert.AlertStatus.AWAITING_RESPONSE);
+            actionHistoryLogRepository.save(log);
+            
+            logger.info("Inquiry email sent for expired extension - Alert ID: {}, Admin: {}", alertId, adminUsername);
+        }
+        
+        return emailSent;
+    }
+    
+    /**
      * Get alert by ID
      */
     public Optional<AuditAlert> getAlertById(Long id) {
