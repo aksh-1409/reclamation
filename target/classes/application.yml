@@ -60,7 +60,11 @@ app:
     vendor-url: http://localhost:8082/mock/vendor
   email:
     verification-base-url: https://wheaten-nondenunciating-george.ngrok-free.dev/verify
-    response-deadline-days: 3
+    response-deadline-days: 0  # Changed to 0 days for testing
+    response-deadline-minutes: 4  # Added 4 minutes for testing
+    reminder-before-minutes: 2  # Send reminder 2 minutes before deadline
+    extension-duration-days: 0  # Changed to 0 days for testing
+    extension-duration-minutes: 4  # Extension lasts 4 minutes for testing
   scheduling:
-    deadline-check-cron: "0 0 * * * *" # Every hour
-    extension-check-cron: "0 30 * * * *" # Every hour at 30 minutes
+    deadline-check-cron: "0 * * * * *" # Every minute for testing
+    extension-check-cron: "30 * * * * *" # Every minute at 30 seconds for testing

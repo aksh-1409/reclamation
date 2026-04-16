@@ -45,6 +45,9 @@ public class AuditAlert {
     @Column(name = "verification_token")
     private String verificationToken;
     
+    @Column(name = "reminder_sent")
+    private Boolean reminderSent = false;
+    
     @OneToMany(mappedBy = "auditAlert", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ActionHistoryLog> actionHistory = new ArrayList<>();
     
@@ -98,6 +101,9 @@ public class AuditAlert {
     
     public String getVerificationToken() { return verificationToken; }
     public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
+    
+    public Boolean getReminderSent() { return reminderSent; }
+    public void setReminderSent(Boolean reminderSent) { this.reminderSent = reminderSent; }
     
     public List<ActionHistoryLog> getActionHistory() { return actionHistory; }
     public void setActionHistory(List<ActionHistoryLog> actionHistory) { this.actionHistory = actionHistory; }

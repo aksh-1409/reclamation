@@ -201,6 +201,60 @@ public class DashboardController {
     }
     
     /**
+     * Extend license again after extension expired
+     */
+    @PostMapping("/extend-again/{id}")
+    public String extendAgain(@PathVariable Long id,
+                             @RequestParam int extensionDays,
+                             @RequestParam String justification,
+                             Authentication auth,
+                             RedirectAttributes redirectAttributes) {
+        
+        if (justification == null || justification.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Justification is required for extending licenses.");
+            return "redirect:/";
+        }
+        
+        if (extensionDays <= 0 || extensionDays > 60) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Extension days must be between 1 and 60.");
+            return "redirect:/";
+        }
+        
+        boolean success = auditAlertService.extendExpiredLicense(id, auth.getName(), extensionDays, justification);
+        if (success) {
+            redirectAttributes.addFlashAttribute("successMessage", "License extended again successfully.");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to extend license again.");
+        }
+        
+        return "redirect:/";
+    }
+    
+    /**
+     * Revoke expired license
+     */
+    @PostMapping("/revoke-expired/{id}")
+    public String revokeExpired(@PathVariable Long id,
+                               @RequestParam String justification,
+                               Authentication auth,
+                               RedirectAttributes redirectAttributes) {
+        
+        if (justification == null || justification.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Justification is required for revoking expired licenses.");
+            return "redirect:/";
+        }
+        
+        boolean success = auditAlertService.revokeExpiredLicense(id, auth.getName(), justification);
+        if (success) {
+            redirectAttributes.addFlashAttribute("successMessage", "Expired license revoked successfully.");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to revoke expired license.");
+        }
+        
+        return "redirect:/";
+    }
+    
+    /**
      * View alert details (AJAX endpoint)
      */
     @GetMapping("/alert/{id}")

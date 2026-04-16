@@ -6,6 +6,8 @@ import com.company.licenseengine.entity.EmailResponse;
 import com.company.licenseengine.repository.ActionHistoryLogRepository;
 import com.company.licenseengine.repository.AuditAlertRepository;
 import com.company.licenseengine.repository.EmailResponseRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class AuditAlertService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AuditAlertService.class);
     
     @Autowired
     private AuditAlertRepository auditAlertRepository;
@@ -40,6 +44,15 @@ public class AuditAlertService {
     
     @Value("${app.email.response-deadline-days}")
     private int responseDeadlineDays;
+    
+    @Value("${app.email.response-deadline-minutes:0}")
+    private int responseDeadlineMinutes;
+    
+    @Value("${app.email.extension-duration-days:30}")
+    private int extensionDurationDays;
+    
+    @Value("${app.email.extension-duration-minutes:0}")
+    private int extensionDurationMinutes;
     
     /**
      * Get all alerts visible on dashboard
@@ -97,8 +110,17 @@ public class AuditAlertService {
         String token = UUID.randomUUID().toString();
         alert.setVerificationToken(token);
         
-        // Set response deadline
-        alert.setResponseDeadline(LocalDateTime.now().plusDays(responseDeadlineDays));
+        // Set response deadline (use minutes for testing if configured, otherwise days)
+        LocalDateTime deadline;
+        if (responseDeadlineMinutes > 0) {
+            deadline = LocalDateTime.now().plusMinutes(responseDeadlineMinutes);
+        } else {
+            deadline = LocalDateTime.now().plusDays(responseDeadlineDays);
+        }
+        alert.setResponseDeadline(deadline);
+        
+        // Initialize reminder sent flag
+        alert.setReminderSent(false);
         
         // Update status
         AuditAlert.AlertStatus previousStatus = alert.getStatus();
@@ -166,10 +188,21 @@ public class AuditAlertService {
         EmailResponse response = alert.getEmailResponse();
         if (response == null) return false;
         
-        // Set extension expiration
-        LocalDateTime extensionExpiration = LocalDateTime.now()
-            .plusDays(response.getRequestedDurationDays())
-            .plusDays(2); // Buffer days
+        // Set extension expiration (use minutes for testing if configured, otherwise days)
+        LocalDateTime extensionExpiration;
+        if (extensionDurationMinutes > 0) {
+            // Testing mode: use minutes instead of days
+            int requestedMinutes = response.getRequestedDurationDays(); // Treat "days" as minutes in test mode
+            extensionExpiration = LocalDateTime.now()
+                .plusMinutes(extensionDurationMinutes); // Use configured test duration (4 minutes)
+            logger.info("TESTING MODE: Extension set for {} minutes (expires at: {})", 
+                extensionDurationMinutes, extensionExpiration);
+        } else {
+            // Production mode: use days
+            extensionExpiration = LocalDateTime.now()
+                .plusDays(response.getRequestedDurationDays())
+                .plusDays(2); // Buffer days
+        }
         alert.setExtensionExpiration(extensionExpiration);
         
         // Update status
@@ -222,8 +255,16 @@ public class AuditAlertService {
         
         AuditAlert alert = alertOpt.get();
         
-        // Extend deadline
-        alert.setResponseDeadline(LocalDateTime.now().plusDays(additionalDays));
+        // Extend deadline (use minutes for testing if configured, otherwise days)
+        LocalDateTime newDeadline;
+        if (responseDeadlineMinutes > 0) {
+            // For testing mode, extend by minutes
+            newDeadline = LocalDateTime.now().plusMinutes(additionalDays); // additionalDays becomes additional minutes in test mode
+        } else {
+            // Normal mode, extend by days
+            newDeadline = LocalDateTime.now().plusDays(additionalDays);
+        }
+        alert.setResponseDeadline(newDeadline);
         
         // Update status back to awaiting response
         AuditAlert.AlertStatus previousStatus = alert.getStatus();
@@ -271,6 +312,71 @@ public class AuditAlertService {
         // Log action
         ActionHistoryLog log = new ActionHistoryLog(alert, adminUsername, 
             ActionHistoryLog.ActionType.REVOKE_OVERDUE, justification, previousStatus, 
+            AuditAlert.AlertStatus.RESOLVED);
+        actionHistoryLogRepository.save(log);
+        
+        return true;
+    }
+    
+    /**
+     * Extend expired license again
+     */
+    public boolean extendExpiredLicense(Long alertId, String adminUsername, int extensionDays, String justification) {
+        Optional<AuditAlert> alertOpt = auditAlertRepository.findById(alertId);
+        if (alertOpt.isEmpty()) return false;
+        
+        AuditAlert alert = alertOpt.get();
+        if (alert.getStatus() != AuditAlert.AlertStatus.EXTENSION_EXPIRED) return false;
+        
+        // Set new extension expiration (use minutes for testing if configured, otherwise days)
+        LocalDateTime newExtensionExpiration;
+        if (extensionDurationMinutes > 0) {
+            // Testing mode: treat extensionDays as minutes
+            newExtensionExpiration = LocalDateTime.now().plusMinutes(extensionDurationMinutes);
+            logger.info("TESTING MODE: New extension set for {} minutes (expires at: {})", 
+                extensionDurationMinutes, newExtensionExpiration);
+        } else {
+            // Production mode: use days
+            newExtensionExpiration = LocalDateTime.now().plusDays(extensionDays).plusDays(2); // Buffer days
+        }
+        alert.setExtensionExpiration(newExtensionExpiration);
+        
+        // Update status back to approved extension
+        AuditAlert.AlertStatus previousStatus = alert.getStatus();
+        alert.setStatus(AuditAlert.AlertStatus.APPROVED_EXTENSION);
+        auditAlertRepository.save(alert);
+        
+        // Log action
+        ActionHistoryLog log = new ActionHistoryLog(alert, adminUsername, 
+            ActionHistoryLog.ActionType.APPROVE_EXTENSION, justification, 
+            previousStatus, AuditAlert.AlertStatus.APPROVED_EXTENSION);
+        actionHistoryLogRepository.save(log);
+        
+        return true;
+    }
+    
+    /**
+     * Revoke expired license
+     */
+    public boolean revokeExpiredLicense(Long alertId, String adminUsername, String justification) {
+        Optional<AuditAlert> alertOpt = auditAlertRepository.findById(alertId);
+        if (alertOpt.isEmpty()) return false;
+        
+        AuditAlert alert = alertOpt.get();
+        if (alert.getStatus() != AuditAlert.AlertStatus.EXTENSION_EXPIRED) return false;
+        
+        // Call mock API to revoke license
+        boolean success = mockApiService.revokeLicense(alert.getEmail(), alert.getVendorName());
+        if (!success) return false;
+        
+        // Update alert status
+        AuditAlert.AlertStatus previousStatus = alert.getStatus();
+        alert.setStatus(AuditAlert.AlertStatus.RESOLVED);
+        auditAlertRepository.save(alert);
+        
+        // Log action
+        ActionHistoryLog log = new ActionHistoryLog(alert, adminUsername, 
+            ActionHistoryLog.ActionType.REVOKE_EXPIRED, justification, previousStatus, 
             AuditAlert.AlertStatus.RESOLVED);
         actionHistoryLogRepository.save(log);
         

@@ -295,6 +295,12 @@
                                         
                                         <!-- Overdue Actions -->
                                         <div th:if="${alert.status.name() == 'RESPONSE_OVERDUE'}">
+                                            <div class="mb-2">
+                                                <small class="text-danger">
+                                                    <i class="bi bi-exclamation-triangle"></i>
+                                                    <strong>Overdue:</strong> No response received by deadline
+                                                </small>
+                                            </div>
                                             <button type="button" class="btn btn-outline-warning btn-sm" 
                                                     data-bs-toggle="modal" 
                                                     th:data-bs-target="'#extendModal' + ${alert.id}">
@@ -303,6 +309,26 @@
                                             <button type="button" class="btn btn-danger btn-sm" 
                                                     data-bs-toggle="modal" 
                                                     th:data-bs-target="'#revokeOverdueModal' + ${alert.id}">
+                                                <i class="bi bi-trash"></i> REVOKE
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Extension Expired Actions -->
+                                        <div th:if="${alert.status.name() == 'EXTENSION_EXPIRED'}">
+                                            <div class="mb-2">
+                                                <small class="text-warning">
+                                                    <i class="bi bi-clock-history"></i>
+                                                    <strong>Extension Expired:</strong> Approved extension period has ended
+                                                </small>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-success btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    th:data-bs-target="'#extendAgainModal' + ${alert.id}">
+                                                <i class="bi bi-arrow-clockwise"></i> EXTEND AGAIN
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    th:data-bs-target="'#revokeExpiredModal' + ${alert.id}">
                                                 <i class="bi bi-trash"></i> REVOKE
                                             </button>
                                         </div>
@@ -455,6 +481,229 @@
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-danger">
                                     <i class="bi bi-x-circle"></i> Reject & Revoke
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Extend Deadline Modal -->
+            <div th:if="${alert.status.name() == 'RESPONSE_OVERDUE'}" 
+                 class="modal fade" th:id="'extendModal' + ${alert.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title">
+                                <i class="bi bi-clock"></i> Extend Response Deadline
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="post" th:action="@{/extend-deadline/{id}(id=${alert.id})}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Response Overdue:</strong> 
+                                    <span th:if="${alert.responseDeadline}">
+                                        Deadline was <span th:text="${#temporals.format(alert.responseDeadline, 'MMM dd, yyyy HH:mm')}"></span>
+                                    </span>
+                                </div>
+                                
+                                <!-- Show email sent date from action history -->
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-envelope"></i>
+                                    <strong>Email Status:</strong>
+                                    <div th:if="${alert.actionHistory != null and !alert.actionHistory.empty}">
+                                        <div th:each="action : ${alert.actionHistory}" th:if="${action.actionType.name() == 'SEND_EMAIL'}">
+                                            Email was sent on <strong th:text="${#temporals.format(action.createdAt, 'MMM dd, yyyy HH:mm')}"></strong> but user has not responded.
+                                        </div>
+                                    </div>
+                                    <div th:if="${alert.actionHistory == null or alert.actionHistory.empty}">
+                                        No email sending record found.
+                                    </div>
+                                </div>
+                                
+                                <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
+                                <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
+                                <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Additional Days:</label>
+                                    <select name="additionalDays" class="form-select" required>
+                                        <option value="3">3 days</option>
+                                        <option value="7" selected>7 days</option>
+                                        <option value="14">14 days</option>
+                                        <option value="30">30 days</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Justification (Required):</label>
+                                    <input type="text" name="justification" class="form-control" 
+                                           placeholder="e.g., Employee requested extension due to vacation" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-clock"></i> Extend Deadline
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Revoke Overdue Modal -->
+            <div th:if="${alert.status.name() == 'RESPONSE_OVERDUE'}" 
+                 class="modal fade" th:id="'revokeOverdueModal' + ${alert.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">
+                                <i class="bi bi-trash"></i> Revoke Overdue License
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="post" th:action="@{/revoke-overdue/{id}(id=${alert.id})}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="modal-body">
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>Warning:</strong> This action will permanently revoke the license due to overdue response.
+                                </div>
+                                
+                                <!-- Show email sent date and overdue information -->
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-envelope-x"></i>
+                                    <strong>Response Overdue:</strong>
+                                    <div th:if="${alert.actionHistory != null and !alert.actionHistory.empty}">
+                                        <div th:each="action : ${alert.actionHistory}" th:if="${action.actionType.name() == 'SEND_EMAIL'}">
+                                            Email was sent on <strong th:text="${#temporals.format(action.createdAt, 'MMM dd, yyyy HH:mm')}"></strong>
+                                        </div>
+                                    </div>
+                                    <div th:if="${alert.responseDeadline}">
+                                        Deadline was <strong th:text="${#temporals.format(alert.responseDeadline, 'MMM dd, yyyy HH:mm')}"></strong>
+                                    </div>
+                                    <div class="mt-2">User has not responded and deadline has passed.</div>
+                                </div>
+                                
+                                <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
+                                <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
+                                <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Justification (Required):</label>
+                                    <input type="text" name="justification" class="form-control" 
+                                           placeholder="e.g., No response after deadline extension" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Revoke License
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Extend Again Modal (for expired extensions) -->
+            <div th:if="${alert.status.name() == 'EXTENSION_EXPIRED'}" 
+                 class="modal fade" th:id="'extendAgainModal' + ${alert.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title">
+                                <i class="bi bi-arrow-clockwise"></i> Extend License Again
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="post" th:action="@{/extend-again/{id}(id=${alert.id})}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="modal-body">
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-clock-history"></i>
+                                    <strong>Extension Expired:</strong> 
+                                    <span th:if="${alert.extensionExpiration}">
+                                        Previous extension expired on <span th:text="${#temporals.format(alert.extensionExpiration, 'MMM dd, yyyy HH:mm')}"></span>
+                                    </span>
+                                </div>
+                                
+                                <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
+                                <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
+                                <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">New Extension Duration (for testing, treated as minutes):</label>
+                                    <select name="extensionDays" class="form-select" required>
+                                        <option value="2">2 minutes</option>
+                                        <option value="4" selected>4 minutes</option>
+                                        <option value="6">6 minutes</option>
+                                        <option value="10">10 minutes</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Justification (Required):</label>
+                                    <input type="text" name="justification" class="form-control" 
+                                           placeholder="e.g., Project extended, additional time needed" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-arrow-clockwise"></i> Extend Again
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Revoke Expired Modal -->
+            <div th:if="${alert.status.name() == 'EXTENSION_EXPIRED'}" 
+                 class="modal fade" th:id="'revokeExpiredModal' + ${alert.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">
+                                <i class="bi bi-trash"></i> Revoke Expired License
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form method="post" th:action="@{/revoke-expired/{id}(id=${alert.id})}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                            <div class="modal-body">
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>Warning:</strong> This action will permanently revoke the license after extension expiry.
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Extension History:</strong>
+                                    <div th:if="${alert.extensionExpiration}">
+                                        Extension expired on <strong th:text="${#temporals.format(alert.extensionExpiration, 'MMM dd, yyyy HH:mm')}"></strong>
+                                    </div>
+                                </div>
+                                
+                                <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
+                                <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
+                                <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Justification (Required):</label>
+                                    <input type="text" name="justification" class="form-control" 
+                                           placeholder="e.g., Extension period completed, no further need" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i> Revoke License
                                 </button>
                             </div>
                         </form>
