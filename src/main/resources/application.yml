@@ -59,7 +59,7 @@ app:
     hris-url: http://localhost:8082/mock/hris
     vendor-url: http://localhost:8082/mock/vendor
   email:
-    verification-base-url: https://wheaten-nondenunciating-george.ngrok-free.dev/verify
+    verification-base-url: https://wheaten-nondenunciating-george.ngrok-free.dev
     response-deadline-days: 0  # Changed to 0 days for testing
     response-deadline-minutes: 4  # Added 4 minutes for testing
     reminder-before-minutes: 2  # Send reminder 2 minutes before deadline

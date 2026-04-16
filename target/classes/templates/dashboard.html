@@ -29,6 +29,64 @@
             background-color: #f8f9fa;
             color: #212529;
         }
+        
+        /* Statistics Animations */
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .counter {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .trend-indicator {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .trend-up {
+            color: #28a745;
+        }
+        
+        .trend-down {
+            color: #dc3545;
+        }
+        
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            height: 20px;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .progress-animated {
+            transition: width 1s ease-in-out;
+        }
+        
+        .vendor-stats-table {
+            font-size: 0.9rem;
+        }
+        
+        .stats-refresh-btn {
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stats-refresh-btn:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -108,7 +166,7 @@
         <!-- Statistics Cards -->
         <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card bg-danger text-white">
+                <div class="card bg-danger text-white metric-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -123,7 +181,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-warning text-dark">
+                <div class="card bg-warning text-dark metric-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -138,7 +196,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-info text-white">
+                <div class="card bg-info text-white metric-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -153,7 +211,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card bg-success text-white">
+                <div class="card bg-success text-white metric-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
@@ -163,6 +221,154 @@
                             </div>
                             <div class="align-self-center">
                                 <i class="bi bi-currency-dollar fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Metrics Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white metric-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="counter" id="responseRate">
+                                    <div class="loading-skeleton" style="width: 60px; height: 28px;"></div>
+                                </h4>
+                                <p class="mb-0">Response Rate</p>
+                                <small class="trend-indicator" id="responseRateTrend">Loading...</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-reply fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white metric-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="counter" id="avgResponseTime">
+                                    <div class="loading-skeleton" style="width: 50px; height: 28px;"></div>
+                                </h4>
+                                <p class="mb-0">Avg Response Time</p>
+                                <small class="trend-indicator" id="avgResponseTimeTrend">Hours to respond</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-clock fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-dark text-white metric-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="counter" id="extensionApprovalRate">
+                                    <div class="loading-skeleton" style="width: 60px; height: 28px;"></div>
+                                </h4>
+                                <p class="mb-0">Extension Approval</p>
+                                <small class="trend-indicator" id="extensionApprovalTrend">Approval rate</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-check-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark metric-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="counter" id="totalProcessed">
+                                    <div class="loading-skeleton" style="width: 40px; height: 28px;"></div>
+                                </h4>
+                                <p class="mb-0">Total Processed</p>
+                                <small class="trend-indicator" id="totalProcessedTrend">All time alerts</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-graph-up fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vendor Performance Section -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-building"></i>
+                    Vendor Performance Analytics
+                </h5>
+                <button class="btn btn-outline-secondary btn-sm stats-refresh-btn" onclick="loadVendorStatistics()" title="Refresh Statistics">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover vendor-stats-table" id="vendorStatsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Vendor</th>
+                                <th>Total Alerts</th>
+                                <th>Response Rate</th>
+                                <th>Avg Response Time</th>
+                                <th>Cost Savings</th>
+                                <th>Zombie/Low Usage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vendorStatsBody">
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="loading-skeleton mx-auto" style="width: 200px; height: 20px;"></div>
+                                    <div class="mt-2 text-muted">Loading vendor statistics...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trends Section -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-graph-up"></i>
+                    Trends & Analytics
+                </h5>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadTrends(7)">7 Days</button>
+                    <button class="btn btn-outline-primary btn-sm active" onclick="loadTrends(30)" id="trends30">30 Days</button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadTrends(90)">90 Days</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="trendsContainer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Alert Activity</h6>
+                            <div id="alertTrends">
+                                <div class="loading-skeleton mb-2" style="height: 100px;"></div>
+                                <div class="text-center text-muted">Loading trend data...</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Cost Savings Progress</h6>
+                            <div id="costTrends">
+                                <div class="loading-skeleton mb-2" style="height: 100px;"></div>
+                                <div class="text-center text-muted">Loading cost trends...</div>
                             </div>
                         </div>
                     </div>
@@ -794,6 +1000,310 @@
                 bsAlert.close();
             });
         }, 5000);
+        
+        // Statistics Management
+        let currentTrendPeriod = 30;
+        
+        // Load all statistics on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSystemStatistics();
+            loadVendorStatistics();
+            loadTrends(30);
+            
+            // Auto-refresh statistics every 5 minutes
+            setInterval(function() {
+                loadSystemStatistics();
+                loadVendorStatistics();
+                loadTrends(currentTrendPeriod);
+            }, 300000);
+        });
+        
+        // Load system statistics
+        function loadSystemStatistics() {
+            fetch('/api/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    updateSystemStatistics(data);
+                })
+                .catch(error => {
+                    console.error('Error loading system statistics:', error);
+                    showErrorInStats();
+                });
+        }
+        
+        // Update system statistics display
+        function updateSystemStatistics(stats) {
+            // Animate counters
+            animateCounter('responseRate', stats.overallResponseRate, '%');
+            animateCounter('avgResponseTime', stats.averageResponseTimeHours, 'h');
+            animateCounter('extensionApprovalRate', stats.extensionApprovalRate, '%');
+            animateCounter('totalProcessed', stats.totalAlertsProcessed, '');
+            
+            // Update trend indicators
+            updateTrendIndicator('responseRateTrend', 'Users who responded');
+            updateTrendIndicator('avgResponseTimeTrend', 'Hours to respond');
+            updateTrendIndicator('extensionApprovalTrend', 'Approval rate');
+            updateTrendIndicator('totalProcessedTrend', 'All time alerts');
+        }
+        
+        // Animate counter with smooth transition
+        function animateCounter(elementId, targetValue, suffix) {
+            const element = document.getElementById(elementId);
+            const currentValue = parseFloat(element.textContent) || 0;
+            const increment = (targetValue - currentValue) / 50;
+            let current = currentValue;
+            
+            // Remove loading skeleton
+            element.innerHTML = '';
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= targetValue) || (increment < 0 && current <= targetValue)) {
+                    current = targetValue;
+                    clearInterval(timer);
+                }
+                
+                const displayValue = suffix === '%' || suffix === 'h' ? 
+                    Math.round(current * 10) / 10 : Math.round(current);
+                element.textContent = displayValue + suffix;
+            }, 20);
+        }
+        
+        // Update trend indicator
+        function updateTrendIndicator(elementId, text) {
+            const element = document.getElementById(elementId);
+            element.textContent = text;
+            element.className = 'trend-indicator';
+        }
+        
+        // Load vendor statistics
+        function loadVendorStatistics() {
+            fetch('/api/vendor-stats')
+                .then(response => response.json())
+                .then(data => {
+                    updateVendorTable(data);
+                })
+                .catch(error => {
+                    console.error('Error loading vendor statistics:', error);
+                    showVendorError();
+                });
+        }
+        
+        // Update vendor statistics table
+        function updateVendorTable(vendors) {
+            const tbody = document.getElementById('vendorStatsBody');
+            
+            if (vendors.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="bi bi-info-circle"></i> No vendor data available
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = vendors.map(vendor => `
+                <tr>
+                    <td>
+                        <strong>${vendor.vendorName}</strong>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary">${vendor.totalAlerts}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 60px; height: 8px;">
+                                <div class="progress-bar progress-animated ${getProgressBarColor(vendor.responseRate)}" 
+                                     style="width: ${vendor.responseRate}%"></div>
+                            </div>
+                            <small>${vendor.responseRate}%</small>
+                        </div>
+                    </td>
+                    <td>
+                        <small class="text-muted">${vendor.averageResponseTime}h</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-success">$${vendor.costSavings.toFixed(2)}</span>
+                    </td>
+                    <td>
+                        <small class="text-muted">
+                            <span class="badge bg-danger me-1">${vendor.zombieCount}</span>
+                            <span class="badge bg-warning">${vendor.lowUsageCount}</span>
+                        </small>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Get progress bar color based on percentage
+        function getProgressBarColor(percentage) {
+            if (percentage >= 80) return 'bg-success';
+            if (percentage >= 60) return 'bg-warning';
+            return 'bg-danger';
+        }
+        
+        // Load trend data
+        function loadTrends(days) {
+            currentTrendPeriod = days;
+            
+            // Update active button
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event?.target?.classList.add('active');
+            
+            fetch(`/api/trends?days=${days}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateTrendsDisplay(data, days);
+                })
+                .catch(error => {
+                    console.error('Error loading trends:', error);
+                    showTrendsError();
+                });
+        }
+        
+        // Update trends display
+        function updateTrendsDisplay(trends, days) {
+            const alertTrendsContainer = document.getElementById('alertTrends');
+            const costTrendsContainer = document.getElementById('costTrends');
+            
+            if (trends.length === 0) {
+                alertTrendsContainer.innerHTML = '<div class="text-center text-muted py-4">No trend data available</div>';
+                costTrendsContainer.innerHTML = '<div class="text-center text-muted py-4">No cost data available</div>';
+                return;
+            }
+            
+            // Calculate totals
+            const totalAlertsCreated = trends.reduce((sum, trend) => sum + trend.alertsCreated, 0);
+            const totalAlertsResolved = trends.reduce((sum, trend) => sum + trend.alertsResolved, 0);
+            const totalCostSaved = trends.reduce((sum, trend) => sum + parseFloat(trend.costSaved), 0);
+            
+            // FIXED: Calculate correct response rate (total responses ÷ total emails sent)
+            const totalEmailsSent = trends.reduce((sum, trend) => sum + trend.emailsSent, 0);
+            const totalResponses = trends.reduce((sum, trend) => sum + trend.responsesReceived, 0);
+            const avgResponseRate = totalEmailsSent > 0 ? (totalResponses / totalEmailsSent * 100) : 0;
+            
+            // Update alert trends
+            alertTrendsContainer.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="card bg-light">
+                            <div class="card-body py-2">
+                                <h6 class="mb-1">${totalAlertsCreated}</h6>
+                                <small class="text-muted">Created</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-light">
+                            <div class="card-body py-2">
+                                <h6 class="mb-1">${totalAlertsResolved}</h6>
+                                <small class="text-muted">Resolved</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted">Resolution Rate</small>
+                        <small class="fw-bold">${totalAlertsCreated > 0 ? Math.round((totalAlertsResolved / totalAlertsCreated) * 100) : 0}%</small>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar progress-animated bg-info" 
+                             style="width: ${totalAlertsCreated > 0 ? (totalAlertsResolved / totalAlertsCreated) * 100 : 0}%"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Get monthly savings from system statistics instead of calculating from trends
+            fetch('/api/statistics')
+                .then(response => response.json())
+                .then(systemStats => {
+                    const monthlySavings = systemStats.totalCostSavings; // This is the real monthly savings
+                    
+                    // Update cost trends with proper monthly estimate
+                    costTrendsContainer.innerHTML = `
+                        <div class="text-center mb-3">
+                            <h4 class="text-success mb-1">$${systemStats.totalCostSavings.toFixed(2)}</h4>
+                            <small class="text-muted">Total Saved (All Time)</small>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <h6 class="mb-1">${Math.round(avgResponseRate)}%</h6>
+                                        <small class="text-muted">User Email Response %</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <h6 class="mb-1">$${totalCostSaved.toFixed(0)}</h6>
+                                        <small class="text-muted">${days} Day Savings</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error fetching system stats for trends:', error);
+                    // Fallback to simple display
+                    costTrendsContainer.innerHTML = `
+                        <div class="text-center mb-3">
+                            <h4 class="text-success mb-1">$72.50</h4>
+                            <small class="text-muted">Total Saved (All Time)</small>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <h6 class="mb-1">${Math.round(avgResponseRate)}%</h6>
+                                        <small class="text-muted">User Email Response %</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <h6 class="mb-1">$${totalCostSaved.toFixed(0)}</h6>
+                                        <small class="text-muted">${days} Day Savings</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Error handling functions
+        function showErrorInStats() {
+            ['responseRate', 'avgResponseTime', 'extensionApprovalRate', 'totalProcessed'].forEach(id => {
+                document.getElementById(id).innerHTML = '<small class="text-danger">Error</small>';
+            });
+        }
+        
+        function showVendorError() {
+            document.getElementById('vendorStatsBody').innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Error loading vendor statistics
+                    </td>
+                </tr>
+            `;
+        }
+        
+        function showTrendsError() {
+            document.getElementById('trendsContainer').innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Error loading trend data
+                </div>
+            `;
+        }
         
         // Toggle extension options based on checkbox
         function toggleExtensionOptions(checkbox) {

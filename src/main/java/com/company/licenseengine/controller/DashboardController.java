@@ -6,6 +6,7 @@ import com.company.licenseengine.service.AuditAlertService;
 import com.company.licenseengine.service.CostCalculationService;
 import com.company.licenseengine.service.DataSyncService;
 import com.company.licenseengine.service.ScheduledTaskService;
+import com.company.licenseengine.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -31,6 +32,9 @@ public class DashboardController {
     
     @Autowired
     private CostCalculationService costCalculationService;
+    
+    @Autowired
+    private StatisticsService statisticsService;
     
     /**
      * Main dashboard page
@@ -332,6 +336,33 @@ public class DashboardController {
                 overdueCount, expiredCount));
         
         return "redirect:/";
+    }
+    
+    /**
+     * Get system statistics (AJAX endpoint)
+     */
+    @GetMapping("/api/statistics")
+    @ResponseBody
+    public StatisticsService.SystemStatistics getSystemStatistics() {
+        return statisticsService.getSystemStatistics();
+    }
+    
+    /**
+     * Get vendor statistics (AJAX endpoint)
+     */
+    @GetMapping("/api/vendor-stats")
+    @ResponseBody
+    public List<StatisticsService.VendorStatistics> getVendorStatistics() {
+        return statisticsService.getVendorStatistics();
+    }
+    
+    /**
+     * Get trend data (AJAX endpoint)
+     */
+    @GetMapping("/api/trends")
+    @ResponseBody
+    public List<StatisticsService.TrendData> getTrendData(@RequestParam(defaultValue = "30") int days) {
+        return statisticsService.getTrendData(days);
     }
     
     /**

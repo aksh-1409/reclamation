@@ -62,6 +62,6 @@ public class EmailResponse {
     
     // Enum
     public enum ResponseType {
-        SURRENDER_LICENSE, KEEP_LICENSE
+        SURRENDER_LICENSE, KEEP_LICENSE, KEEP_LICENSE_PERMANENT, KEEP_LICENSE_TEMPORARY
     }
 }

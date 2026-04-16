@@ -44,6 +44,7 @@ public class MockApiService {
     
     /**
      * Mock Vendor API - Returns list of active licenses with last login dates
+     * ALL SOFTWARE NOW HAS REALISTIC MONTHLY COSTS
      */
     public List<VendorLicense> getLicensesFromVendor() {
         LocalDateTime now = LocalDateTime.now();
@@ -75,12 +76,19 @@ public class MockApiService {
             new VendorLicense("kevin.wright@company.com", "user020", now.minusDays(35), "Basic", "Trello", true, new BigDecimal("5.00")),
             new VendorLicense("nancy.clark@company.com", "user021", now.minusDays(50), "Premium", "QuickBooks", true, new BigDecimal("30.00")),
             
-            // Additional edge cases (5 licenses)
+            // Additional edge cases - ALL WITH REALISTIC COSTS (5 licenses)
             new VendorLicense("test.zombie@company.com", "user009", now.minusDays(15), "Premium", "Figma", true, new BigDecimal("45.00")),
             new VendorLicense("unknown.user@company.com", "user022", now.minusDays(20), "Basic", "Dropbox", true, new BigDecimal("9.99")),
             new VendorLicense("john.doe@company.com", "user023", now.minusDays(6), "Basic", "Spotify", true, new BigDecimal("9.99")), // Multiple licenses for same user
             new VendorLicense("jane.smith@company.com", "user024", now.minusDays(130), "Premium", "Adobe Photoshop", true, new BigDecimal("20.99")), // Same user, different usage pattern
-            new VendorLicense("expired.license@company.com", "user025", now.minusDays(200), "Enterprise", "Legacy Tool", true, new BigDecimal("25.00"))
+            new VendorLicense("expired.license@company.com", "user025", now.minusDays(200), "Enterprise", "Legacy Tool", true, new BigDecimal("25.00")),
+            
+            // Additional realistic software licenses to ensure comprehensive coverage
+            new VendorLicense("test.user1@company.com", "user026", now.minusDays(80), "Premium", "Microsoft Teams", true, new BigDecimal("12.50")),
+            new VendorLicense("test.user2@company.com", "user027", now.minusDays(90), "Enterprise", "Atlassian Suite", true, new BigDecimal("35.00")),
+            new VendorLicense("test.user3@company.com", "user028", now.minusDays(70), "Basic", "Google Workspace", true, new BigDecimal("6.00")),
+            new VendorLicense("test.user4@company.com", "user029", now.minusDays(85), "Premium", "Asana", true, new BigDecimal("10.99")),
+            new VendorLicense("test.user5@company.com", "user030", now.minusDays(75), "Enterprise", "Monday.com", true, new BigDecimal("24.00"))
         );
     }
     
