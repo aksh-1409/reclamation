@@ -157,8 +157,9 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4>$0</h4>
-                                <p class="mb-0">Potential Savings</p>
+                                <h4 th:text="'$' + ${#numbers.formatDecimal(totalSavings, 1, 2)}">$0</h4>
+                                <p class="mb-0">Total Savings</p>
+                                <small th:text="'$' + ${#numbers.formatDecimal(monthlySavings, 1, 2)} + '/month'">Monthly</small>
                             </div>
                             <div class="align-self-center">
                                 <i class="bi bi-currency-dollar fs-1"></i>
@@ -194,6 +195,7 @@
                                 <th>Vendor</th>
                                 <th>Type</th>
                                 <th>Status</th>
+                                <th>Monthly Cost</th>
                                 <th>Last Login</th>
                                 <th>Actions</th>
                             </tr>
@@ -226,6 +228,12 @@
                                         <span th:case="'RESPONSE_OVERDUE'" class="badge bg-danger">Overdue</span>
                                         <span th:case="'EXTENSION_EXPIRED'" class="badge bg-dark">Extension Expired</span>
                                     </span>
+                                </td>
+                                <td>
+                                    <span th:if="${alert.monthlyCost != null}" class="badge bg-success">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/mo
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">N/A</span>
                                 </td>
                                 <td>
                                     <small th:if="${alert.lastLoginDate}" 
@@ -364,6 +372,12 @@
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                <p><strong>Monthly Cost:</strong> 
+                                    <span th:if="${alert.monthlyCost != null}" class="text-success fw-bold">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/month
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">Not available</span>
+                                </p>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Justification (Required):</label>
@@ -412,6 +426,12 @@
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                <p><strong>Monthly Cost:</strong> 
+                                    <span th:if="${alert.monthlyCost != null}" class="text-success fw-bold">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/month
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">Not available</span>
+                                </p>
                                 
                                 <div th:if="${alert.emailResponse != null and alert.emailResponse.reason != null}" class="mb-3">
                                     <label class="form-label">User's Reason:</label>
@@ -470,6 +490,12 @@
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                <p><strong>Monthly Cost:</strong> 
+                                    <span th:if="${alert.monthlyCost != null}" class="text-success fw-bold">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/month
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">Not available</span>
+                                </p>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Justification (Required):</label>
@@ -527,6 +553,12 @@
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                <p><strong>Monthly Cost:</strong> 
+                                    <span th:if="${alert.monthlyCost != null}" class="text-success fw-bold">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/month
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">Not available</span>
+                                </p>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Additional Days:</label>
@@ -592,6 +624,12 @@
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                <p><strong>Monthly Cost:</strong> 
+                                    <span th:if="${alert.monthlyCost != null}" class="text-success fw-bold">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/month
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">Not available</span>
+                                </p>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Justification (Required):</label>
@@ -636,6 +674,12 @@
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                <p><strong>Monthly Cost:</strong> 
+                                    <span th:if="${alert.monthlyCost != null}" class="text-success fw-bold">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/month
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">Not available</span>
+                                </p>
                                 
                                 <!-- Option Selection -->
                                 <div class="mb-3">
@@ -711,6 +755,12 @@
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
+                                <p><strong>Monthly Cost:</strong> 
+                                    <span th:if="${alert.monthlyCost != null}" class="text-success fw-bold">
+                                        $<span th:text="${#numbers.formatDecimal(alert.monthlyCost, 1, 2)}">0.00</span>/month
+                                    </span>
+                                    <span th:if="${alert.monthlyCost == null}" class="text-muted">Not available</span>
+                                </p>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Justification (Required):</label>

@@ -11,7 +11,7 @@ public class ActionHistoryLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "audit_alert_id", nullable = false)
     private AuditAlert auditAlert;
     

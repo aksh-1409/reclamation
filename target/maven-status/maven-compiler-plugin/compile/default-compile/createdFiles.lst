@@ -13,6 +13,7 @@ com\company\licenseengine\entity\ActionHistoryLog$ActionType.class
 com\company\licenseengine\repository\ActionHistoryLogRepository.class
 com\company\licenseengine\service\AuditAlertService.class
 com\company\licenseengine\entity\EmailResponse.class
+com\company\licenseengine\service\CostCalculationService.class
 com\company\licenseengine\service\DataSyncService.class
 com\company\licenseengine\dto\HRISEmployee.class
 com\company\licenseengine\repository\AuditAlertRepository.class
@@ -20,4 +21,5 @@ com\company\licenseengine\entity\ActionHistoryLog.class
 com\company\licenseengine\entity\EmailResponse$ResponseType.class
 com\company\licenseengine\entity\AuditAlert$AlertType.class
 com\company\licenseengine\entity\AuditAlert$AlertStatus.class
+com\company\licenseengine\service\CostCalculationService$CostSavingsSummary.class
 com\company\licenseengine\entity\AuditAlert.class

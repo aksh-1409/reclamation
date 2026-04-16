@@ -19,6 +19,15 @@ public class VerificationController {
     private AuditAlertService auditAlertService;
     
     /**
+     * Handle root /verify access (without token)
+     */
+    @GetMapping
+    public String verifyRoot(Model model) {
+        model.addAttribute("error", "Invalid verification link. Please use the link provided in your email.");
+        return "verification-error";
+    }
+    
+    /**
      * Display verification form for user
      */
     @GetMapping("/{token}")

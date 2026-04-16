@@ -1,7 +1,9 @@
 package com.company.licenseengine.controller;
 
+import com.company.licenseengine.entity.ActionHistoryLog;
 import com.company.licenseengine.entity.AuditAlert;
 import com.company.licenseengine.service.AuditAlertService;
+import com.company.licenseengine.service.CostCalculationService;
 import com.company.licenseengine.service.DataSyncService;
 import com.company.licenseengine.service.ScheduledTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,15 +29,26 @@ public class DashboardController {
     @Autowired
     private ScheduledTaskService scheduledTaskService;
     
+    @Autowired
+    private CostCalculationService costCalculationService;
+    
     /**
      * Main dashboard page
      */
     @GetMapping
     public String dashboard(Model model) {
         List<AuditAlert> alerts = auditAlertService.getVisibleAlerts();
+        
+        // Calculate cost savings
+        CostCalculationService.CostSavingsSummary costSummary = costCalculationService.getCostSavingsSummary();
+        
         model.addAttribute("alerts", alerts);
         model.addAttribute("zombieCount", alerts.stream().filter(a -> a.getAlertType() == AuditAlert.AlertType.ZOMBIE).count());
         model.addAttribute("lowUsageCount", alerts.stream().filter(a -> a.getAlertType() == AuditAlert.AlertType.LOW_USAGE).count());
+        model.addAttribute("totalSavings", costSummary.getTotalSavings());
+        model.addAttribute("monthlySavings", costSummary.getMonthlySavings());
+        model.addAttribute("annualSavings", costSummary.getAnnualSavings());
+        
         return "dashboard";
     }
     
@@ -281,7 +294,28 @@ public class DashboardController {
     @GetMapping("/history")
     public String history(Model model) {
         List<AuditAlert> resolvedAlerts = auditAlertService.getResolvedAlerts();
+        List<ActionHistoryLog> actionHistory = auditAlertService.getAllActionHistory();
+        
+        // Debug logging
+        System.out.println("=== HISTORY PAGE DEBUG ===");
+        System.out.println("Total action history records: " + actionHistory.size());
+        System.out.println("Total resolved alerts: " + resolvedAlerts.size());
+        
+        // Print first 10 action history records
+        for (int i = 0; i < Math.min(10, actionHistory.size()); i++) {
+            ActionHistoryLog action = actionHistory.get(i);
+            System.out.println(String.format("Action %d: %s by %s for %s (%s) at %s", 
+                i + 1, 
+                action.getActionType(), 
+                action.getAdminUsername(),
+                action.getAuditAlert() != null ? action.getAuditAlert().getEmployeeName() : "NULL",
+                action.getAuditAlert() != null ? action.getAuditAlert().getVendorName() : "NULL",
+                action.getCreatedAt()));
+        }
+        System.out.println("=== END DEBUG ===");
+        
         model.addAttribute("resolvedAlerts", resolvedAlerts);
+        model.addAttribute("actionHistory", actionHistory);
         return "history";
     }
     
@@ -298,5 +332,30 @@ public class DashboardController {
                 overdueCount, expiredCount));
         
         return "redirect:/";
+    }
+    
+    /**
+     * Debug endpoint to check action history
+     */
+    @GetMapping("/debug-history")
+    @ResponseBody
+    public String debugHistory() {
+        List<ActionHistoryLog> actionHistory = auditAlertService.getAllActionHistory();
+        StringBuilder sb = new StringBuilder();
+        sb.append("Total Action History Records: ").append(actionHistory.size()).append("\n\n");
+        
+        for (int i = 0; i < actionHistory.size(); i++) {
+            ActionHistoryLog action = actionHistory.get(i);
+            sb.append(String.format("%d. %s by %s for %s (%s) at %s - %s\n", 
+                i + 1,
+                action.getActionType(),
+                action.getAdminUsername(),
+                action.getAuditAlert() != null ? action.getAuditAlert().getEmployeeName() : "NULL",
+                action.getAuditAlert() != null ? action.getAuditAlert().getVendorName() : "NULL",
+                action.getCreatedAt(),
+                action.getJustification()));
+        }
+        
+        return sb.toString();
     }
 }

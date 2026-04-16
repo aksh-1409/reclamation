@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,9 @@ public class AuditAlertService {
     
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private CostCalculationService costCalculationService;
     
     @Value("${app.email.verification-base-url}")
     private String verificationBaseUrl;
@@ -69,6 +73,24 @@ public class AuditAlertService {
     }
     
     /**
+     * Get all action history for audit trail
+     */
+    public List<ActionHistoryLog> getAllActionHistory() {
+        try {
+            // Try the JOIN FETCH query first
+            List<ActionHistoryLog> actionHistory = actionHistoryLogRepository.findAllWithAuditAlertByOrderByCreatedAtDesc();
+            logger.info("DEBUG: Retrieved {} action history records using JOIN FETCH", actionHistory.size());
+            return actionHistory;
+        } catch (Exception e) {
+            logger.error("ERROR: JOIN FETCH query failed, falling back to simple query", e);
+            // Fallback to simple query
+            List<ActionHistoryLog> actionHistory = actionHistoryLogRepository.findAllByOrderByCreatedAtDesc();
+            logger.info("DEBUG: Retrieved {} action history records using simple query", actionHistory.size());
+            return actionHistory;
+        }
+    }
+    
+    /**
      * Revoke a zombie license immediately
      */
     public boolean revokeZombieLicense(Long alertId, String adminUsername, String justification) {
@@ -81,6 +103,12 @@ public class AuditAlertService {
         // Call mock API to revoke license
         boolean success = mockApiService.revokeLicense(alert.getEmail(), alert.getVendorName());
         if (!success) return false;
+        
+        // Calculate and save cost savings
+        BigDecimal costSaved = costCalculationService.calculateCostSavedForAlert(alert);
+        alert.setCostSaved(costSaved);
+        logger.info("DEBUG: Zombie license revoked - Monthly Cost: ${}, Cost saved: ${} for alert {}", 
+            alert.getMonthlyCost(), costSaved, alertId);
         
         // Update alert status
         AuditAlert.AlertStatus previousStatus = alert.getStatus();
@@ -231,6 +259,12 @@ public class AuditAlertService {
         // Revoke license
         boolean success = mockApiService.revokeLicense(alert.getEmail(), alert.getVendorName());
         if (!success) return false;
+        
+        // Calculate and save cost savings
+        BigDecimal costSaved = costCalculationService.calculateCostSavedForAlert(alert);
+        alert.setCostSaved(costSaved);
+        logger.info("DEBUG: License rejected and revoked - Monthly Cost: ${}, Cost saved: ${} for alert {}", 
+            alert.getMonthlyCost(), costSaved, alertId);
         
         // Update status
         AuditAlert.AlertStatus previousStatus = alert.getStatus();
