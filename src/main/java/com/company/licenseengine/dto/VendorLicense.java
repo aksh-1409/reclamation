@@ -1,7 +1,6 @@
 package com.company.licenseengine.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class VendorLicense {
@@ -24,21 +23,17 @@ public class VendorLicense {
     @JsonProperty("isActive")
     private boolean isActive;
     
-    @JsonProperty("monthlyCost")
-    private BigDecimal monthlyCost; // Monthly license cost
-    
     // Constructors
     public VendorLicense() {}
     
     public VendorLicense(String email, String userId, LocalDateTime lastLoginDate, 
-                        String licenseType, String vendorName, boolean isActive, BigDecimal monthlyCost) {
+                        String licenseType, String vendorName, boolean isActive) {
         this.email = email;
         this.userId = userId;
         this.lastLoginDate = lastLoginDate;
         this.licenseType = licenseType;
         this.vendorName = vendorName;
         this.isActive = isActive;
-        this.monthlyCost = monthlyCost;
     }
     
     // Getters and Setters
@@ -59,9 +54,6 @@ public class VendorLicense {
     
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
-    
-    public BigDecimal getMonthlyCost() { return monthlyCost; }
-    public void setMonthlyCost(BigDecimal monthlyCost) { this.monthlyCost = monthlyCost; }
     
     public boolean isLowUsage() {
         if (lastLoginDate == null) return true;

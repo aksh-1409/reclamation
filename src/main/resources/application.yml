@@ -25,22 +25,6 @@ spring:
     cache: false
     prefix: classpath:/templates/
     suffix: .html
-  
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: akshusrathe007@gmail.com
-    password: bski mcsq jlub mtfg
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 3000
-          writetimeout: 5000
 
 server:
   port: 8082
@@ -59,12 +43,8 @@ app:
     hris-url: http://localhost:8082/mock/hris
     vendor-url: http://localhost:8082/mock/vendor
   email:
-    verification-base-url: https://wheaten-nondenunciating-george.ngrok-free.dev
-    response-deadline-days: 0  # Changed to 0 days for testing
-    response-deadline-minutes: 4  # Added 4 minutes for testing
-    reminder-before-minutes: 2  # Send reminder 2 minutes before deadline
-    extension-duration-days: 0  # Changed to 0 days for testing
-    extension-duration-minutes: 4  # Extension lasts 4 minutes for testing
+    verification-base-url: http://localhost:8082/verify
+    response-deadline-days: 3
   scheduling:
-    deadline-check-cron: "0 * * * * *" # Every minute for testing
-    extension-check-cron: "30 * * * * *" # Every minute at 30 seconds for testing
+    deadline-check-cron: "0 0 * * * *" # Every hour
+    extension-check-cron: "0 30 * * * *" # Every hour at 30 minutes

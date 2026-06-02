@@ -1,12 +1,9 @@
 package com.company.licenseengine.controller;
 
-import com.company.licenseengine.entity.ActionHistoryLog;
 import com.company.licenseengine.entity.AuditAlert;
 import com.company.licenseengine.service.AuditAlertService;
-import com.company.licenseengine.service.CostCalculationService;
 import com.company.licenseengine.service.DataSyncService;
 import com.company.licenseengine.service.ScheduledTaskService;
-import com.company.licenseengine.service.StatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -30,29 +27,15 @@ public class DashboardController {
     @Autowired
     private ScheduledTaskService scheduledTaskService;
     
-    @Autowired
-    private CostCalculationService costCalculationService;
-    
-    @Autowired
-    private StatisticsService statisticsService;
-    
     /**
      * Main dashboard page
      */
     @GetMapping
     public String dashboard(Model model) {
         List<AuditAlert> alerts = auditAlertService.getVisibleAlerts();
-        
-        // Calculate cost savings
-        CostCalculationService.CostSavingsSummary costSummary = costCalculationService.getCostSavingsSummary();
-        
         model.addAttribute("alerts", alerts);
         model.addAttribute("zombieCount", alerts.stream().filter(a -> a.getAlertType() == AuditAlert.AlertType.ZOMBIE).count());
         model.addAttribute("lowUsageCount", alerts.stream().filter(a -> a.getAlertType() == AuditAlert.AlertType.LOW_USAGE).count());
-        model.addAttribute("totalSavings", costSummary.getTotalSavings());
-        model.addAttribute("monthlySavings", costSummary.getMonthlySavings());
-        model.addAttribute("annualSavings", costSummary.getAnnualSavings());
-        
         return "dashboard";
     }
     
@@ -194,96 +177,6 @@ public class DashboardController {
     }
     
     /**
-     * Revoke overdue license
-     */
-    @PostMapping("/revoke-overdue/{id}")
-    public String revokeOverdue(@PathVariable Long id,
-                               @RequestParam String justification,
-                               Authentication auth,
-                               RedirectAttributes redirectAttributes) {
-        
-        if (justification == null || justification.trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Justification is required for revoking overdue licenses.");
-            return "redirect:/";
-        }
-        
-        boolean success = auditAlertService.revokeOverdueLicense(id, auth.getName(), justification);
-        if (success) {
-            redirectAttributes.addFlashAttribute("successMessage", "Overdue license revoked successfully.");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to revoke overdue license.");
-        }
-        
-        return "redirect:/";
-    }
-    
-    /**
-     * Extend license again after extension expired
-     */
-    @PostMapping("/extend-again/{id}")
-    public String extendAgain(@PathVariable Long id,
-                             @RequestParam(required = false) Integer extensionDays,
-                             @RequestParam String justification,
-                             @RequestParam(defaultValue = "false") boolean sendInquiryEmail,
-                             Authentication auth,
-                             RedirectAttributes redirectAttributes) {
-        
-        if (justification == null || justification.trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Justification is required for extending licenses.");
-            return "redirect:/";
-        }
-        
-        if (sendInquiryEmail) {
-            // Send inquiry email to user
-            boolean success = auditAlertService.sendInquiryEmailForExpiredExtension(id, auth.getName(), justification);
-            if (success) {
-                redirectAttributes.addFlashAttribute("successMessage", "Inquiry email sent to user successfully.");
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", "Failed to send inquiry email.");
-            }
-        } else {
-            // Direct extension
-            if (extensionDays == null || extensionDays <= 0 || extensionDays > 60) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Extension days must be between 1 and 60.");
-                return "redirect:/";
-            }
-            
-            boolean success = auditAlertService.extendExpiredLicense(id, auth.getName(), extensionDays, justification);
-            if (success) {
-                redirectAttributes.addFlashAttribute("successMessage", "License extended again successfully.");
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", "Failed to extend license again.");
-            }
-        }
-        
-        return "redirect:/";
-    }
-    
-    /**
-     * Revoke expired license
-     */
-    @PostMapping("/revoke-expired/{id}")
-    public String revokeExpired(@PathVariable Long id,
-                               @RequestParam String justification,
-                               Authentication auth,
-                               RedirectAttributes redirectAttributes) {
-        
-        if (justification == null || justification.trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Justification is required for revoking expired licenses.");
-            return "redirect:/";
-        }
-        
-        boolean success = auditAlertService.revokeExpiredLicense(id, auth.getName(), justification);
-        if (success) {
-            redirectAttributes.addFlashAttribute("successMessage", "Expired license revoked successfully.");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to revoke expired license.");
-        }
-        
-        return "redirect:/";
-    }
-    
-    /**
      * View alert details (AJAX endpoint)
      */
     @GetMapping("/alert/{id}")
@@ -298,28 +191,7 @@ public class DashboardController {
     @GetMapping("/history")
     public String history(Model model) {
         List<AuditAlert> resolvedAlerts = auditAlertService.getResolvedAlerts();
-        List<ActionHistoryLog> actionHistory = auditAlertService.getAllActionHistory();
-        
-        // Debug logging
-        System.out.println("=== HISTORY PAGE DEBUG ===");
-        System.out.println("Total action history records: " + actionHistory.size());
-        System.out.println("Total resolved alerts: " + resolvedAlerts.size());
-        
-        // Print first 10 action history records
-        for (int i = 0; i < Math.min(10, actionHistory.size()); i++) {
-            ActionHistoryLog action = actionHistory.get(i);
-            System.out.println(String.format("Action %d: %s by %s for %s (%s) at %s", 
-                i + 1, 
-                action.getActionType(), 
-                action.getAdminUsername(),
-                action.getAuditAlert() != null ? action.getAuditAlert().getEmployeeName() : "NULL",
-                action.getAuditAlert() != null ? action.getAuditAlert().getVendorName() : "NULL",
-                action.getCreatedAt()));
-        }
-        System.out.println("=== END DEBUG ===");
-        
         model.addAttribute("resolvedAlerts", resolvedAlerts);
-        model.addAttribute("actionHistory", actionHistory);
         return "history";
     }
     
@@ -336,57 +208,5 @@ public class DashboardController {
                 overdueCount, expiredCount));
         
         return "redirect:/";
-    }
-    
-    /**
-     * Get system statistics (AJAX endpoint)
-     */
-    @GetMapping("/api/statistics")
-    @ResponseBody
-    public StatisticsService.SystemStatistics getSystemStatistics() {
-        return statisticsService.getSystemStatistics();
-    }
-    
-    /**
-     * Get vendor statistics (AJAX endpoint)
-     */
-    @GetMapping("/api/vendor-stats")
-    @ResponseBody
-    public List<StatisticsService.VendorStatistics> getVendorStatistics() {
-        return statisticsService.getVendorStatistics();
-    }
-    
-    /**
-     * Get trend data (AJAX endpoint)
-     */
-    @GetMapping("/api/trends")
-    @ResponseBody
-    public List<StatisticsService.TrendData> getTrendData(@RequestParam(defaultValue = "30") int days) {
-        return statisticsService.getTrendData(days);
-    }
-    
-    /**
-     * Debug endpoint to check action history
-     */
-    @GetMapping("/debug-history")
-    @ResponseBody
-    public String debugHistory() {
-        List<ActionHistoryLog> actionHistory = auditAlertService.getAllActionHistory();
-        StringBuilder sb = new StringBuilder();
-        sb.append("Total Action History Records: ").append(actionHistory.size()).append("\n\n");
-        
-        for (int i = 0; i < actionHistory.size(); i++) {
-            ActionHistoryLog action = actionHistory.get(i);
-            sb.append(String.format("%d. %s by %s for %s (%s) at %s - %s\n", 
-                i + 1,
-                action.getActionType(),
-                action.getAdminUsername(),
-                action.getAuditAlert() != null ? action.getAuditAlert().getEmployeeName() : "NULL",
-                action.getAuditAlert() != null ? action.getAuditAlert().getVendorName() : "NULL",
-                action.getCreatedAt(),
-                action.getJustification()));
-        }
-        
-        return sb.toString();
     }
 }

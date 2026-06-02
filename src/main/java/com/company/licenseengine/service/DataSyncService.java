@@ -60,7 +60,6 @@ public class DataSyncService {
                     license.getVendorName(), 
                     AuditAlert.AlertType.ZOMBIE);
                 alert.setLastLoginDate(license.getLastLoginDate());
-                alert.setMonthlyCost(license.getMonthlyCost()); // Set cost data
                 zombieCount++;
             }
             // Rule B: LOW_USAGE - Employee is active but hasn't logged in for 90+ days
@@ -70,7 +69,6 @@ public class DataSyncService {
                     license.getVendorName(), 
                     AuditAlert.AlertType.LOW_USAGE);
                 alert.setLastLoginDate(license.getLastLoginDate());
-                alert.setMonthlyCost(license.getMonthlyCost()); // Set cost data
                 lowUsageCount++;
             }
             

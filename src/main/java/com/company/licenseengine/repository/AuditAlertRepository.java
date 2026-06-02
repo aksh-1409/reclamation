@@ -27,10 +27,6 @@ public interface AuditAlertRepository extends JpaRepository<AuditAlert, Long> {
     @Query("SELECT a FROM AuditAlert a WHERE a.status = 'AWAITING_RESPONSE' AND a.responseDeadline < :currentTime")
     List<AuditAlert> findOverdueResponses(@Param("currentTime") LocalDateTime currentTime);
     
-    // Find alerts that need reminder emails (approaching deadline but reminder not sent yet)
-    @Query("SELECT a FROM AuditAlert a WHERE a.status = 'AWAITING_RESPONSE' AND a.responseDeadline > :currentTime AND a.responseDeadline <= :reminderTime AND (a.reminderSent = false OR a.reminderSent IS NULL)")
-    List<AuditAlert> findAlertsNeedingReminder(@Param("currentTime") LocalDateTime currentTime, @Param("reminderTime") LocalDateTime reminderTime);
-    
     // Find expired extensions
     @Query("SELECT a FROM AuditAlert a WHERE a.status = 'APPROVED_EXTENSION' AND a.extensionExpiration < :currentTime")
     List<AuditAlert> findExpiredExtensions(@Param("currentTime") LocalDateTime currentTime);
