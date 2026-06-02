@@ -623,7 +623,14 @@
                                         <span th:switch="${alert.emailResponse.responseType.name()}">
                                             <span th:case="'KEEP_LICENSE_PERMANENT'">Keep license permanently</span>
                                             <span th:case="'KEEP_LICENSE_TEMPORARY'">
-                                                Keep license for <span th:text="${alert.emailResponse.requestedDurationDays}">X</span> days
+                                                Keep license for <strong class="text-primary">
+                                                    <span th:text="${alert.emailResponse.requestedDurationDays}">X</span> days
+                                                </strong>
+                                            </span>
+                                            <span th:case="'KEEP_LICENSE'">
+                                                Keep license for <strong class="text-primary">
+                                                    <span th:text="${alert.emailResponse.requestedDurationDays}">X</span> days
+                                                </strong>
                                             </span>
                                         </span>
                                     </span>
@@ -655,7 +662,13 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i> Approve Extension
+                                    <i class="bi bi-check-circle"></i> 
+                                    <span th:if="${alert.emailResponse != null and alert.emailResponse.requestedDurationDays != null}">
+                                        Approve Extension (<span th:text="${alert.emailResponse.requestedDurationDays}">X</span> days)
+                                    </span>
+                                    <span th:if="${alert.emailResponse == null or alert.emailResponse.requestedDurationDays == null}">
+                                        Approve Extension
+                                    </span>
                                 </button>
                             </div>
                         </form>
@@ -877,6 +890,15 @@
                                     </span>
                                 </div>
                                 
+                                <!-- Show user's original request if available -->
+                                <div th:if="${alert.emailResponse != null and alert.emailResponse.requestedDurationDays != null}" 
+                                     class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>User's Original Request:</strong> 
+                                    <span th:text="${alert.emailResponse.requestedDurationDays}">X</span> days
+                                    <br><small class="text-muted">Consider using the same duration the user originally requested</small>
+                                </div>
+                                
                                 <p><strong>Employee:</strong> <span th:text="${alert.employeeName}"></span></p>
                                 <p><strong>Email:</strong> <span th:text="${alert.email}"></span></p>
                                 <p><strong>Vendor:</strong> <span th:text="${alert.vendorName}"></span></p>
@@ -907,8 +929,14 @@
                                     <label class="form-label">New Extension Duration (for testing, treated as minutes):</label>
                                     <select name="extensionDays" class="form-select" 
                                             th:id="'durationSelect' + ${alert.id}" required>
+                                        <!-- Show user's original request as first option if available -->
+                                        <option th:if="${alert.emailResponse != null and alert.emailResponse.requestedDurationDays != null}"
+                                                th:value="${alert.emailResponse.requestedDurationDays}"
+                                                th:text="'User requested: ' + ${alert.emailResponse.requestedDurationDays} + ' minutes'"
+                                                selected>User requested: X minutes</option>
                                         <option value="2">2 minutes</option>
-                                        <option value="4" selected>4 minutes</option>
+                                        <option value="4" 
+                                                th:selected="${alert.emailResponse == null or alert.emailResponse.requestedDurationDays == null}">4 minutes</option>
                                         <option value="6">6 minutes</option>
                                         <option value="10">10 minutes</option>
                                     </select>
@@ -923,7 +951,13 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-success" th:id="'submitBtn' + ${alert.id}">
-                                    <i class="bi bi-arrow-clockwise"></i> Extend License
+                                    <i class="bi bi-arrow-clockwise"></i> 
+                                    <span th:if="${alert.emailResponse != null and alert.emailResponse.requestedDurationDays != null}">
+                                        Extend License (Default: <span th:text="${alert.emailResponse.requestedDurationDays}">X</span> min)
+                                    </span>
+                                    <span th:if="${alert.emailResponse == null or alert.emailResponse.requestedDurationDays == null}">
+                                        Extend License
+                                    </span>
                                 </button>
                             </div>
                         </form>

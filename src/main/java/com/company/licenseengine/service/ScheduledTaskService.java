@@ -85,7 +85,7 @@ public class ScheduledTaskService {
             logger.info("Sending reminder email for alert {} (deadline: {})", alert.getId(), alert.getResponseDeadline());
             
             // Send reminder email
-            String verificationUrl = verificationBaseUrl + "/" + alert.getVerificationToken();
+            String verificationUrl = verificationBaseUrl + "/verify/" + alert.getVerificationToken();
             boolean emailSent = emailService.sendReminderEmail(
                 alert.getEmail(),
                 alert.getEmployeeName(),

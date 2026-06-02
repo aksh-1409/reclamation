@@ -156,7 +156,7 @@ public class AuditAlertService {
         auditAlertRepository.save(alert);
         
         // Send email
-        String verificationUrl = verificationBaseUrl + "/" + token;
+        String verificationUrl = verificationBaseUrl + "/verify/" + token;
         boolean emailSent = emailService.sendVerificationEmail(
             alert.getEmail(), 
             alert.getEmployeeName(), 
@@ -186,8 +186,21 @@ public class AuditAlertService {
         
         AuditAlert alert = alertOpt.get();
         
-        // Create email response record
-        EmailResponse response = new EmailResponse(alert, responseType, reason, durationDays);
+        // Check if response already exists - if so, update it instead of creating new
+        EmailResponse response;
+        if (alert.getEmailResponse() != null) {
+            // Update existing response
+            response = alert.getEmailResponse();
+            response.setResponseType(responseType);
+            response.setReason(reason);
+            response.setRequestedDurationDays(durationDays);
+            response.setRespondedAt(LocalDateTime.now());
+            System.out.println("Updating existing response for alert ID: " + alert.getId());
+        } else {
+            // Create new email response record
+            response = new EmailResponse(alert, responseType, reason, durationDays);
+            System.out.println("Creating new response for alert ID: " + alert.getId());
+        }
         emailResponseRepository.save(response);
         
         if (responseType == EmailResponse.ResponseType.SURRENDER_LICENSE) {
@@ -216,20 +229,18 @@ public class AuditAlertService {
         EmailResponse response = alert.getEmailResponse();
         if (response == null) return false;
         
-        // Set extension expiration (use minutes for testing if configured, otherwise days)
+        // Set extension expiration (always use 4 minutes for testing, regardless of user request)
         LocalDateTime extensionExpiration;
         if (extensionDurationMinutes > 0) {
-            // Testing mode: use minutes instead of days
-            int requestedMinutes = response.getRequestedDurationDays(); // Treat "days" as minutes in test mode
-            extensionExpiration = LocalDateTime.now()
-                .plusMinutes(extensionDurationMinutes); // Use configured test duration (4 minutes)
-            logger.info("TESTING MODE: Extension set for {} minutes (expires at: {})", 
-                extensionDurationMinutes, extensionExpiration);
+            // Testing mode: always use configured test duration (4 minutes) regardless of user request
+            extensionExpiration = LocalDateTime.now().plusMinutes(extensionDurationMinutes);
+            logger.info("TESTING MODE: Extension set for {} minutes (user requested {} days, but using test duration) (expires at: {})", 
+                extensionDurationMinutes, response.getRequestedDurationDays(), extensionExpiration);
         } else {
-            // Production mode: use days
-            extensionExpiration = LocalDateTime.now()
-                .plusDays(response.getRequestedDurationDays())
-                .plusDays(2); // Buffer days
+            // Production mode: use user's requested days
+            extensionExpiration = LocalDateTime.now().plusDays(response.getRequestedDurationDays());
+            logger.info("PRODUCTION MODE: Extension set for {} days (expires at: {})", 
+                response.getRequestedDurationDays(), extensionExpiration);
         }
         alert.setExtensionExpiration(extensionExpiration);
         
@@ -306,7 +317,7 @@ public class AuditAlertService {
         auditAlertRepository.save(alert);
         
         // Send reminder email
-        String verificationUrl = verificationBaseUrl + "/" + alert.getVerificationToken();
+        String verificationUrl = verificationBaseUrl + "/verify/" + alert.getVerificationToken();
         emailService.sendReminderEmail(
             alert.getEmail(), 
             alert.getEmployeeName(), 
@@ -362,16 +373,26 @@ public class AuditAlertService {
         AuditAlert alert = alertOpt.get();
         if (alert.getStatus() != AuditAlert.AlertStatus.EXTENSION_EXPIRED) return false;
         
-        // Set new extension expiration (use minutes for testing if configured, otherwise days)
+        // Set new extension expiration (always use 4 minutes for testing, regardless of user request)
         LocalDateTime newExtensionExpiration;
         if (extensionDurationMinutes > 0) {
-            // Testing mode: treat extensionDays as minutes
+            // Testing mode: always use configured test duration (4 minutes) regardless of user request
             newExtensionExpiration = LocalDateTime.now().plusMinutes(extensionDurationMinutes);
-            logger.info("TESTING MODE: New extension set for {} minutes (expires at: {})", 
-                extensionDurationMinutes, newExtensionExpiration);
+            logger.info("TESTING MODE: New extension set for {} minutes (user originally requested {} days, but using test duration) (expires at: {})", 
+                extensionDurationMinutes, 
+                (alert.getEmailResponse() != null ? alert.getEmailResponse().getRequestedDurationDays() : extensionDays), 
+                newExtensionExpiration);
         } else {
-            // Production mode: use days
-            newExtensionExpiration = LocalDateTime.now().plusDays(extensionDays).plusDays(2); // Buffer days
+            // Production mode: use days (prefer user's original request if available)
+            if (alert.getEmailResponse() != null && alert.getEmailResponse().getRequestedDurationDays() != null) {
+                newExtensionExpiration = LocalDateTime.now().plusDays(alert.getEmailResponse().getRequestedDurationDays());
+                logger.info("PRODUCTION MODE: New extension set for {} days (user's original request) (expires at: {})", 
+                    alert.getEmailResponse().getRequestedDurationDays(), newExtensionExpiration);
+            } else {
+                newExtensionExpiration = LocalDateTime.now().plusDays(extensionDays);
+                logger.info("PRODUCTION MODE: New extension set for {} days (admin-specified) (expires at: {})", 
+                    extensionDays, newExtensionExpiration);
+            }
         }
         alert.setExtensionExpiration(newExtensionExpiration);
         
@@ -450,7 +471,7 @@ public class AuditAlertService {
         auditAlertRepository.save(alert);
         
         // Send inquiry email
-        String verificationUrl = verificationBaseUrl + "/" + alert.getVerificationToken();
+        String verificationUrl = verificationBaseUrl + "/verify/" + alert.getVerificationToken();
         boolean emailSent = emailService.sendVerificationEmail(
             alert.getEmail(), 
             alert.getEmployeeName(), 
