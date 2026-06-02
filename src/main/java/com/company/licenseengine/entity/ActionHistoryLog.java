@@ -11,7 +11,7 @@ public class ActionHistoryLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "audit_alert_id", nullable = false)
     private AuditAlert auditAlert;
     
@@ -81,6 +81,6 @@ public class ActionHistoryLog {
     // Enum
     public enum ActionType {
         REVOKE_ZOMBIE, SEND_EMAIL, APPROVE_EXTENSION, REJECT_AND_REVOKE, 
-        EXTEND_DEADLINE, REVOKE_OVERDUE, REVOKE_EXPIRED, SEND_REMINDER
+        EXTEND_DEADLINE, REVOKE_OVERDUE, REVOKE_EXPIRED
     }
 }

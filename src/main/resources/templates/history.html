@@ -77,7 +77,7 @@
                     <i class="bi bi-clock-history"></i>
                     Audit History
                 </h1>
-                <p class="text-muted">Complete record of all admin and system actions</p>
+                <p class="text-muted">Complete record of all resolved license actions</p>
             </div>
             <div class="col-md-4 text-end">
                 <a href="/" class="btn btn-primary">
@@ -87,100 +87,61 @@
             </div>
         </div>
         
-        <!-- Action History Table -->
+        <!-- Resolved Alerts Table -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-list-ul"></i>
-                    Action History
-                    <span class="badge bg-primary ms-2" th:text="${actionHistory.size()}">0</span>
+                    <i class="bi bi-check-circle"></i>
+                    Resolved Alerts
+                    <span class="badge bg-success ms-2" th:text="${resolvedAlerts.size()}">0</span>
                 </h5>
             </div>
             <div class="card-body p-0">
-                <div th:if="${actionHistory.empty}" class="text-center py-5">
+                <div th:if="${resolvedAlerts.empty}" class="text-center py-5">
                     <i class="bi bi-inbox text-muted fs-1"></i>
-                    <h4 class="mt-3 text-muted">No Actions Yet</h4>
-                    <p class="text-muted">Admin and system actions will appear here.</p>
+                    <h4 class="mt-3 text-muted">No History Yet</h4>
+                    <p class="text-muted">Resolved alerts will appear here.</p>
                 </div>
                 
-                <div th:if="${!actionHistory.empty}" class="table-responsive">
+                <div th:if="${!resolvedAlerts.empty}" class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Date & Time</th>
-                                <th>Action</th>
                                 <th>Employee</th>
+                                <th>Email</th>
                                 <th>Vendor</th>
-                                <th>Admin/System</th>
-                                <th>Status Change</th>
-                                <th>Justification</th>
+                                <th>Type</th>
+                                <th>Created</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="action : ${actionHistory}">
+                            <tr th:each="alert : ${resolvedAlerts}">
                                 <td>
-                                    <small th:text="${#temporals.format(action.createdAt, 'MMM dd, yyyy')}">Date</small><br>
-                                    <small class="text-muted" th:text="${#temporals.format(action.createdAt, 'HH:mm:ss')}">Time</small>
+                                    <strong th:text="${alert.employeeName}">Employee Name</strong>
+                                </td>
+                                <td th:text="${alert.email}">email@company.com</td>
+                                <td>
+                                    <span class="badge bg-secondary" th:text="${alert.vendorName}">Vendor</span>
                                 </td>
                                 <td>
-                                    <span th:switch="${action.actionType.name()}" class="badge">
-                                        <span th:case="'REVOKE_ZOMBIE'" class="badge bg-danger">
-                                            <i class="bi bi-trash"></i> Revoke Zombie
-                                        </span>
-                                        <span th:case="'SEND_EMAIL'" class="badge bg-info">
-                                            <i class="bi bi-envelope"></i> Send Email
-                                        </span>
-                                        <span th:case="'SEND_REMINDER'" class="badge bg-warning">
-                                            <i class="bi bi-bell"></i> Send Reminder
-                                        </span>
-                                        <span th:case="'APPROVE_EXTENSION'" class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Approve Extension
-                                        </span>
-                                        <span th:case="'REJECT_AND_REVOKE'" class="badge bg-danger">
-                                            <i class="bi bi-x-circle"></i> Reject & Revoke
-                                        </span>
-                                        <span th:case="'EXTEND_DEADLINE'" class="badge bg-warning">
-                                            <i class="bi bi-clock"></i> Extend Deadline
-                                        </span>
-                                        <span th:case="'REVOKE_OVERDUE'" class="badge bg-danger">
-                                            <i class="bi bi-trash"></i> Revoke Overdue
-                                        </span>
-                                        <span th:case="'REVOKE_EXPIRED'" class="badge bg-danger">
-                                            <i class="bi bi-trash"></i> Revoke Expired
-                                        </span>
-                                        <span th:case="*" class="badge bg-secondary" th:text="${action.actionType.name()}">Unknown</span>
+                                    <span th:if="${alert.alertType.name() == 'ZOMBIE'}" class="badge bg-danger">
+                                        <i class="bi bi-person-x"></i> Zombie
+                                    </span>
+                                    <span th:if="${alert.alertType.name() == 'LOW_USAGE'}" class="badge bg-warning text-dark">
+                                        <i class="bi bi-clock-history"></i> Low Usage
                                     </span>
                                 </td>
                                 <td>
-                                    <strong th:text="${action.auditAlert.employeeName}">Employee</strong><br>
-                                    <small class="text-muted" th:text="${action.auditAlert.email}">email</small>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary" th:text="${action.auditAlert.vendorName}">Vendor</span><br>
-                                    <small th:if="${action.auditAlert.monthlyCost != null}" class="text-success">
-                                        $<span th:text="${#numbers.formatDecimal(action.auditAlert.monthlyCost, 1, 2)}">0.00</span>/mo
+                                    <small th:text="${#temporals.format(alert.createdAt, 'MMM dd, yyyy HH:mm')}">
+                                        Created Date
                                     </small>
                                 </td>
                                 <td>
-                                    <span th:if="${action.adminUsername == 'SYSTEM'}" class="badge bg-info">
-                                        <i class="bi bi-gear"></i> System
-                                    </span>
-                                    <span th:if="${action.adminUsername != 'SYSTEM'}" class="badge bg-primary">
-                                        <i class="bi bi-person"></i> <span th:text="${action.adminUsername}">Admin</span>
-                                    </span>
-                                </td>
-                                <td>
-                                    <small class="text-muted" th:if="${action.previousStatus != null}">
-                                        <span th:text="${action.previousStatus.name()}">OLD</span>
+                                    <small class="text-success">
+                                        <i class="bi bi-check-circle"></i>
+                                        Resolved
                                     </small>
-                                    <i class="bi bi-arrow-right text-muted mx-1" th:if="${action.previousStatus != null and action.newStatus != null}"></i>
-                                    <small class="fw-bold" th:if="${action.newStatus != null}">
-                                        <span th:text="${action.newStatus.name()}">NEW</span>
-                                    </small>
-                                </td>
-                                <td>
-                                    <small th:if="${action.justification != null}" th:text="${action.justification}">Justification</small>
-                                    <small th:if="${action.justification == null}" class="text-muted">-</small>
                                 </td>
                             </tr>
                         </tbody>
