@@ -19,6 +19,15 @@ public class VerificationController {
     private AuditAlertService auditAlertService;
     
     /**
+     * Handle root /verify access (without token)
+     */
+    @GetMapping
+    public String verifyRoot(Model model) {
+        model.addAttribute("error", "Invalid verification link. Please use the link provided in your email.");
+        return "verification-error";
+    }
+    
+    /**
      * Display verification form for user
      */
     @GetMapping("/{token}")
@@ -32,8 +41,9 @@ public class VerificationController {
         
         AuditAlert alert = alertOpt.get();
         
-        // Check if already responded
-        if (alert.getStatus() != AuditAlert.AlertStatus.AWAITING_RESPONSE) {
+        // Allow verification for AWAITING_RESPONSE and RESPONSE_OVERDUE statuses
+        if (alert.getStatus() != AuditAlert.AlertStatus.AWAITING_RESPONSE && 
+            alert.getStatus() != AuditAlert.AlertStatus.RESPONSE_OVERDUE) {
             model.addAttribute("error", "This verification link has already been used or has expired.");
             return "verification-error";
         }
@@ -59,6 +69,8 @@ public class VerificationController {
             redirectAttributes.addFlashAttribute("error", "Invalid or expired verification link.");
             return "redirect:/verify/error";
         }
+        
+        AuditAlert alert = alertOpt.get();
         
         EmailResponse.ResponseType type;
         try {

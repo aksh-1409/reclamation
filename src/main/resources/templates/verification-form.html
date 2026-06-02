@@ -45,6 +45,7 @@
                         
                         <!-- Response Form -->
                         <form method="post" th:action="@{/verify/{token}(token=${token})}" id="verificationForm">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                             <div class="mb-4">
                                 <h6>What would you like to do?</h6>
                                 

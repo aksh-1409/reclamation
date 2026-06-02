@@ -1,6 +1,7 @@
 package com.company.licenseengine.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,15 @@ public class AuditAlert {
     
     @Column(name = "verification_token")
     private String verificationToken;
+    
+    @Column(name = "reminder_sent")
+    private Boolean reminderSent = false;
+    
+    @Column(name = "monthly_cost", precision = 10, scale = 2)
+    private BigDecimal monthlyCost; // Monthly license cost
+    
+    @Column(name = "cost_saved", precision = 10, scale = 2)
+    private BigDecimal costSaved; // Cost saved when license is revoked
     
     @OneToMany(mappedBy = "auditAlert", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ActionHistoryLog> actionHistory = new ArrayList<>();
@@ -98,6 +108,15 @@ public class AuditAlert {
     
     public String getVerificationToken() { return verificationToken; }
     public void setVerificationToken(String verificationToken) { this.verificationToken = verificationToken; }
+    
+    public Boolean getReminderSent() { return reminderSent; }
+    public void setReminderSent(Boolean reminderSent) { this.reminderSent = reminderSent; }
+    
+    public BigDecimal getMonthlyCost() { return monthlyCost; }
+    public void setMonthlyCost(BigDecimal monthlyCost) { this.monthlyCost = monthlyCost; }
+    
+    public BigDecimal getCostSaved() { return costSaved; }
+    public void setCostSaved(BigDecimal costSaved) { this.costSaved = costSaved; }
     
     public List<ActionHistoryLog> getActionHistory() { return actionHistory; }
     public void setActionHistory(List<ActionHistoryLog> actionHistory) { this.actionHistory = actionHistory; }
